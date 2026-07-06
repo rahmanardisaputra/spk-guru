@@ -35,10 +35,10 @@
                     <div class="card-body">
                         <p class="small text-secondary mb-4">Silakan cetak dokumen resmi di bawah ini, lalu mintalah tanda tangan fisik dan stempel kepada Kepala Sekolah sebagai dokumen bukti administrasi resmi.</p>
                         <div class="d-grid gap-2">
-                            <a href="{{ route('reward.cetak_pengumuman', $guru->id) }}" target="_blank" class="btn btn-primary text-start fw-semibold py-2">
+                            <a href="{{ route('reward.cetak_pengumuman', ['guru_id' => $guru->id, 'peringkat' => 1]) }}" target="_blank" class="btn btn-primary text-start fw-semibold py-2">
                                 <i class="fa-solid fa-file-pdf me-2"></i> Cetak Surat Pengumuman Sekolah
                             </a>
-                            <a href="{{ route('reward.cetak_insentif', $guru->id) }}" target="_blank" class="btn btn-success text-start fw-semibold py-2">
+                            <a href="{{ route('reward.cetak_insentif', ['guru_id' => $guru->id, 'peringkat' => 1]) }}" target="_blank" class="btn btn-success text-start fw-semibold py-2">
                                 <i class="fa-solid fa-receipt me-2"></i> Cetak Surat Pemberian Insentif
                             </a>
                         </div>

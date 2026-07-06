@@ -11,38 +11,49 @@ class FloatingController extends Controller
 {
     public function index()
     {
-        // Ambil semua user yang rolenya guru_supervisi
-        $supervisis = User::where('role', 'guru_supervisi')->get();
-        // Ambil semua data guru
-        $gurus = Guru::all();
-        // Ambil data floating yang sudah ada saat ini
-        $floatings = FloatingSupervisi::with(['supervisi', 'guru'])->get();
+        $semester = session('semester');
+        if (!$semester) {
+            return redirect()->route('login')->with('error', 'Silakan login ulang untuk memilih semester.');
+        }
 
-        return view('floating.index', compact('supervisis', 'gurus', 'floatings'));
+        $supervisis = User::where('role', 'guru_supervisi')->get();
+        // Hanya ambil kandidat pada semester ini
+        $kandidatIds = \App\Models\Kandidat::where('semester', $semester)->pluck('guru_id');
+        $gurus = Guru::whereIn('id', $kandidatIds)->get();
+        
+        $floatings = FloatingSupervisi::with(['supervisi', 'guru'])
+                        ->where('semester', $semester)
+                        ->get();
+
+        $semesterName = \App\Helpers\SemesterHelper::getName($semester);
+
+        return view('floating.index', compact('supervisis', 'gurus', 'floatings', 'semesterName'));
     }
 
     public function store(Request $request)
     {
+        $semester = session('semester');
         $request->validate([
             'supervisi_id' => 'required|exists:users,id',
             'guru_id' => 'required|exists:gurus,id',
         ]);
 
-        // Cek apakah kombinasi floating ini sudah pernah dibuat sebelumnya
         $exists = FloatingSupervisi::where('supervisi_id', $request->supervisi_id)
                                     ->where('guru_id', $request->guru_id)
+                                    ->where('semester', $semester)
                                     ->exists();
 
         if ($exists) {
-            return redirect()->back()->with('error', 'Guru Supervisi tersebut sudah ter-floating untuk guru ini!');
+            return redirect()->back()->with('error', 'Guru Supervisi tersebut sudah ter-floating untuk kandidat ini di semester aktif!');
         }
 
         FloatingSupervisi::create([
             'supervisi_id' => $request->supervisi_id,
             'guru_id' => $request->guru_id,
+            'semester' => $semester,
         ]);
 
-        return redirect()->route('floating.index')->with('success', 'Berhasil melakukan floating tugas supervisi!');
+        return redirect()->route('floating.index')->with('success', 'Berhasil melakukan floating tugas supervisi pada semester ini!');
     }
 
     public function destroy($id)
@@ -55,11 +66,11 @@ class FloatingController extends Controller
 
     public function cetakSuratTugas($supervisi_id)
     {
-        // Ambil data user supervisi
+        $semester = session('semester');
         $supervisi = User::findOrFail($supervisi_id);
 
-        // Ambil semua daftar guru yang di-floating ke supervisi ini
         $floatings = FloatingSupervisi::where('supervisi_id', $supervisi_id)
+                                      ->where('semester', $semester)
                                       ->with('guru')
                                       ->get();
 

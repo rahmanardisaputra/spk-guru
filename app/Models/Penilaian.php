@@ -9,7 +9,7 @@ class Penilaian extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['guru_id', 'user_id', 'sub_kriteria_id', 'nilai_aktual'];
+    protected $fillable = ['guru_id', 'user_id', 'sub_kriteria_id', 'nilai_aktual', 'semester'];
 
     // Relasi ke tabel guru
     public function guru()

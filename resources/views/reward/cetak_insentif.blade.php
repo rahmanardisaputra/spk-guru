@@ -28,7 +28,13 @@
     <table style="margin-left: 40px; font-size: 12pt; margin-bottom: 20px;">
         <tr><td>Nama Lengkap</td><td>:</td><td style="font-weight: bold;">{{ $guru->nama_guru }}</td></tr>
         <tr><td>NIP</td><td>:</td><td>{{ $guru->nip ?? '-' }}</td></tr>
-        <tr><td>Capaian Penghargaan</td><td>:</td><td>Guru Terbaik Periode Utama</td></tr>
+        <tr><td>Capaian Penghargaan</td><td>:</td><td>Guru Terbaik Peringkat 
+        @if($peringkat == 1) I 
+        @elseif($peringkat == 2) II
+        @elseif($peringkat == 3) III
+        @else {{ $peringkat }}
+        @endif
+        </td></tr>
     </table>
 
     <p class="paragraf">Insentif ini diserahkan sebagai bentuk apresiasi nyata atas integritas, dedikasi kerja tinggi, serta loyalitas penuh yang telah ditunjukkan dalam memajukan mutu pendidikan di lingkungan SD Muhammadiyah Sang Pencerah.</p>

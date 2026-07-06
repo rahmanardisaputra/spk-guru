@@ -246,21 +246,32 @@
                     <i class="fa-solid fa-gauge-high"></i> Dashboard
                 </a>
 
-                @if(Auth::user()->role == 'kepala_sekolah')
+                @if(Auth::user()->role == 'tu')
                     <div class="menu-label">Data Master</div>
                     <a class="nav-link {{ request()->routeIs('guru.*') ? 'active' : '' }}" href="{{ route('guru.index') }}">
                         <i class="fa-solid fa-chalkboard-user"></i> Data Guru
                     </a>
+                    <div class="menu-label">Cetak Dokumen</div>
+                    <a class="nav-link {{ request()->routeIs('reward.tu') ? 'active' : '' }}" href="{{ route('reward.tu') }}">
+                        <i class="fa-solid fa-certificate"></i> Sertifikat Penghargaan
+                    </a>
+                @endif
+
+                @if(Auth::user()->role == 'kepala_sekolah')
+                    <div class="menu-label">Data Master</div>
                     <a class="nav-link {{ request()->routeIs('kriteria.*') ? 'active' : '' }}" href="{{ route('kriteria.index') }}">
                         <i class="fa-solid fa-list-check"></i> Data Kriteria
                     </a>
 
                     <div class="menu-label">SPK</div>
-                    <a class="nav-link {{ request()->routeIs('perhitungan.*') ? 'active' : '' }}" href="{{ route('perhitungan.index') }}">
-                        <i class="fa-solid fa-calculator"></i> Perhitungan
+                    <a class="nav-link {{ request()->routeIs('kandidat.*') ? 'active' : '' }}" href="{{ route('kandidat.index') }}">
+                        <i class="fa-solid fa-users"></i> Kandidat Penilaian
                     </a>
                     <a class="nav-link {{ request()->routeIs('floating.*') ? 'active' : '' }}" href="{{ route('floating.index') }}">
                         <i class="fa-solid fa-network-wired"></i> Floating Tugas
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('perhitungan.*') ? 'active' : '' }}" href="{{ route('perhitungan.index') }}">
+                        <i class="fa-solid fa-calculator"></i> Perhitungan Hasil
                     </a>
                     <div class="menu-label">Manajemen Pengguna</div>
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
@@ -347,6 +358,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');

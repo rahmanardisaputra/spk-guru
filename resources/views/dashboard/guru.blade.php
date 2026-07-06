@@ -3,8 +3,9 @@
 @section('content')
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chalkboard-user text-info me-2"></i>Dashboard Guru</h4>
-            <small class="text-muted">Selamat datang, <strong>{{ Auth::user()->name }}</strong>. Panel informasi profil & capaian kerja Anda.</small>
+            <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-chalkboard-user text-info me-2"></i>Dashboard Guru</h4>
+            <div class="badge bg-primary mb-2">Periode Penilaian: {{ $periode_penilaian }}</div>
+            <small class="text-muted d-block">Selamat datang, <strong>{{ Auth::user()->name }}</strong>. Panel informasi profil & capaian kerja Anda.</small>
         </div>
     </div>
 

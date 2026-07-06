@@ -3,11 +3,12 @@
 @section('content')
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Dashboard Kepala Sekolah</h4>
-            <small class="text-muted">Selamat datang kembali, Pimpinan SD Muhammadiyah Sang Pencerah.</small>
+            <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Dashboard Kepala Sekolah</h4>
+            <div class="badge bg-primary mb-2">Periode Penilaian: {{ $periode_penilaian }}</div>
+            <small class="text-muted d-block">Selamat datang kembali, Pimpinan SD Muhammadiyah Sang Pencerah.</small>
         </div>
         <div class="col-md-6 text-md-end mt-2 mt-md-0">
-            <span class="badge bg-dark py-2 px-3 shadow-sm"><i class="fa-solid fa-calendar-day me-1"></i> Periode Evaluasi: {{ date('Y') }}</span>
+            <span class="badge bg-dark py-2 px-3 shadow-sm"><i class="fa-solid fa-calendar-day me-1"></i> Tahun Aktif: {{ date('Y') }}</span>
         </div>
     </div>
 

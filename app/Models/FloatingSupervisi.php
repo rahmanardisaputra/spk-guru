@@ -9,7 +9,7 @@ class FloatingSupervisi extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['supervisi_id', 'guru_id'];
+    protected $fillable = ['supervisi_id', 'guru_id', 'semester'];
 
     public function supervisi()
     {

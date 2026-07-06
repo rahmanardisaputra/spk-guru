@@ -11,56 +11,57 @@ use Illuminate\Support\Facades\Auth;
 
 class PenilaianController extends Controller
 {
-    // Menampilkan daftar guru YANG HANYA DI-FLOATING ke Supervisi yang sedang login
     public function index()
     {
+        $semester = session('semester');
+        if (!$semester) return redirect()->route('login')->with('error', 'Silakan pilih semester.');
+
         $userLogedIn = Auth::user();
 
         if ($userLogedIn->role == 'kepala_sekolah') {
-            // Kalau Kepala Sekolah yang buka, dia bisa melihat semua guru
-            $gurus = Guru::all();
+            $kandidatIds = \App\Models\Kandidat::where('semester', $semester)->pluck('guru_id');
+            $gurus = Guru::whereIn('id', $kandidatIds)->get();
         } else {
-            // Kalau Guru Supervisi yang buka, filter lewat tabel floating_supervisis
-            $gurus = Guru::whereIn('id', function($query) use ($userLogedIn) {
+            $gurus = Guru::whereIn('id', function($query) use ($userLogedIn, $semester) {
                 $query->select('guru_id')
                       ->from('floating_supervisis')
-                      ->where('supervisi_id', $userLogedIn->id);
+                      ->where('supervisi_id', $userLogedIn->id)
+                      ->where('semester', $semester);
             })->get();
+        }
+
+        $totalSubKriteria = Kriteria::withCount('subKriterias')->get()->sum('sub_kriterias_count');
+        foreach ($gurus as $guru) {
+            $dinilai = Penilaian::where('guru_id', $guru->id)
+                                ->where('semester', $semester)
+                                ->count();
+            
+            $persentase = $totalSubKriteria > 0 ? round(($dinilai / $totalSubKriteria) * 100) : 0;
+            
+            $guru->status_penilaian = $persentase >= 100 ? 'Selesai' : 'Belum Selesai';
+            $guru->persentase_penilaian = $persentase;
         }
 
         return view('penilaian.index', compact('gurus'));
     }
 
-    // Menampilkan form input nilai untuk 1 guru
     public function create($guru_id)
     {
-        $userLogedIn = Auth::user();
+        $semester = session('semester');
         $guru = Guru::findOrFail($guru_id);
-        
-        // Pastikan Guru Supervisi tidak menembak URL manual untuk menilai guru yang bukan haknya
-        if ($userLogedIn->role != 'kepala_sekolah') {
-            $isAssigned = FloatingSupervisi::where('supervisi_id', $userLogedIn->id)
-                                           ->where('guru_id', $guru_id)
-                                           ->exists();
-            if (!$isAssigned) {
-                return redirect()->route('penilaian.index')->with('error', 'Anda tidak ditugaskan untuk menilai guru ini!');
-            }
-        }
-
         $kriterias = Kriteria::with('subKriterias')->get();
         
-        // Ambil nilai yang pernah diinput OLEH SUPERVISI YANG SEDANG LOGIN SAJA
-        $penilaian_sebelumnya = Penilaian::where('guru_id', $guru_id)
-            ->where('user_id', $userLogedIn->id)
-            ->pluck('nilai_aktual', 'sub_kriteria_id')
-            ->toArray();
+        $penilaians = Penilaian::where('guru_id', $guru_id)
+                               ->where('semester', $semester)
+                               ->get()
+                               ->keyBy('sub_kriteria_id');
 
-        return view('penilaian.create', compact('guru', 'kriterias', 'penilaian_sebelumnya'));
+        return view('penilaian.create', compact('guru', 'kriterias', 'penilaians'));
     }
 
-    // Menyimpan nilai ke database dengan mencatat ID Supervisi penilai
     public function store(Request $request, $guru_id)
     {
+        $semester = session('semester');
         $userLogedIn = Auth::user();
 
         // 1. PROSES PENILAIAN STANDAR (K1 - K4)
@@ -70,83 +71,60 @@ class PenilaianController extends Controller
                     [
                         'user_id' => $userLogedIn->id, 
                         'guru_id' => $guru_id, 
-                        'sub_kriteria_id' => $sub_kriteria_id
+                        'sub_kriteria_id' => $sub_kriteria_id,
+                        'semester' => $semester
                     ],
                     ['nilai_aktual' => $nilai]
                 );
             }
         }
 
-        // 2. PROSES PENILAIAN ABSENSI (K5) - Konversi Hari ke Skala 1-5
+        // 2. PROSES PENILAIAN ABSENSI (K5)
         if ($request->has('absensi')) {
             foreach ($request->absensi as $sub_kriteria_id => $data_absen) {
-                
-                // JIKA INPUTAN HARI KOSONG (SAAT EDIT), ABAIKAN DAN JANGAN TIMPA DATA LAMA
-                if (empty($data_absen['total_hari'])) {
-                    continue;
-                }
+                if (empty($data_absen['total_hari'])) continue;
 
                 $total_hari = $data_absen['total_hari'];
                 $sakit = $data_absen['sakit'] ?? 0;
                 $izin = $data_absen['izin'] ?? 0;
                 $alfa = $data_absen['alfa'] ?? 0;
 
-                // Hitung total hadir
-                $tidak_hadir = $sakit + $izin + $alfa;
-                $hadir = $total_hari - $tidak_hadir;
-
-                // Hitung persentase kehadiran
+                $hadir = $total_hari - ($sakit + $izin + $alfa);
                 $persentase = ($total_hari > 0) ? ($hadir / $total_hari) * 100 : 0;
 
-                // Mapping ke skala 1-5 berdasarkan persentase
                 $nilai_absensi = 1;
-                if ($persentase >= 96) {
-                    $nilai_absensi = 5;
-                } elseif ($persentase >= 91) {
-                    $nilai_absensi = 4;
-                } elseif ($persentase >= 81) {
-                    $nilai_absensi = 3;
-                } elseif ($persentase >= 71) {
-                    $nilai_absensi = 2;
-                } else {
-                    $nilai_absensi = 1;
-                }
+                if ($persentase >= 96) $nilai_absensi = 5;
+                elseif ($persentase >= 91) $nilai_absensi = 4;
+                elseif ($persentase >= 81) $nilai_absensi = 3;
+                elseif ($persentase >= 71) $nilai_absensi = 2;
 
-                // Simpan ke database
                 Penilaian::updateOrCreate(
                     [
                         'user_id' => $userLogedIn->id, 
                         'guru_id' => $guru_id, 
-                        'sub_kriteria_id' => $sub_kriteria_id
+                        'sub_kriteria_id' => $sub_kriteria_id,
+                        'semester' => $semester
                     ],
                     ['nilai_aktual' => $nilai_absensi]
                 );
             }
         }
 
-        // 3. PROSES PENILAIAN PRESTASI (K6) - Konversi Teks ke Skala 1-5
+        // 3. PROSES PENILAIAN PRESTASI (K6)
         if ($request->has('prestasi')) {
             foreach ($request->prestasi as $sub_kriteria_id => $level_prestasi) {
-                // Mapping tingkat prestasi ke angka
                 $nilai_prestasi = 1;
-                if ($level_prestasi == 'nasional') {
-                    $nilai_prestasi = 5;
-                } elseif ($level_prestasi == 'provinsi') {
-                    $nilai_prestasi = 4;
-                } elseif ($level_prestasi == 'kota') {
-                    $nilai_prestasi = 3;
-                } elseif ($level_prestasi == 'sekolah') {
-                    $nilai_prestasi = 2;
-                } elseif ($level_prestasi == 'tidak_ada') {
-                    $nilai_prestasi = 1;
-                }
+                if ($level_prestasi == 'nasional') $nilai_prestasi = 5;
+                elseif ($level_prestasi == 'provinsi') $nilai_prestasi = 4;
+                elseif ($level_prestasi == 'kota') $nilai_prestasi = 3;
+                elseif ($level_prestasi == 'sekolah') $nilai_prestasi = 2;
 
-                // Simpan ke database
                 Penilaian::updateOrCreate(
                     [
                         'user_id' => $userLogedIn->id, 
                         'guru_id' => $guru_id, 
-                        'sub_kriteria_id' => $sub_kriteria_id
+                        'sub_kriteria_id' => $sub_kriteria_id,
+                        'semester' => $semester
                     ],
                     ['nilai_aktual' => $nilai_prestasi]
                 );

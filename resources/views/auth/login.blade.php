@@ -49,6 +49,24 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label for="semester" class="form-label text-secondary small fw-semibold">Pilih Semester</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-calendar text-muted"></i></span>
+                                <select id="semester" class="form-select bg-light border-start-0 @error('semester') is-invalid @enderror" name="semester" required>
+                                    <option value="">-- Pilih Semester Aktif --</option>
+                                    @foreach($semesters as $key => $val)
+                                        <option value="{{ $key }}" {{ old('semester') == $key ? 'selected' : '' }}>{{ $val }}</option>
+                                    @endforeach
+                                </select>
+                                @error('semester')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="mb-4 d-flex justify-content-between align-items-center">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>

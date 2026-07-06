@@ -11,60 +11,177 @@ class PerhitunganController extends Controller
 {
     public function index()
     {
-        $gurus = Guru::all();
-        $results = [];
+        $semester = session('semester');
+        if (!$semester) return redirect()->route('login');
+
+        // Ambil ID kandidat pada semester ini
+        $kandidatIds = \App\Models\Kandidat::where('semester', $semester)->pluck('guru_id');
+        $gurus = Guru::whereIn('id', $kandidatIds)->get();
+        
+        $kriterias = Kriteria::with('subKriterias')->get();
+        $hasil_akhir = [];
 
         foreach ($gurus as $guru) {
-            $total_nilai = 0;
-            
-            // AMBIL RATA-RATA NILAI AKTUAL dari semua supervisi yang menilai guru ini, dikelompokkan per sub kriteria
-            $penilaians = Penilaian::where('guru_id', $guru->id)
-                ->select('sub_kriteria_id', \DB::raw('AVG(nilai_aktual) as rata_nilai'))
-                ->groupBy('sub_kriteria_id')
-                ->with('subKriteria')
-                ->get();
+            $total_nilai_guru = 0;
+            $rincian = [];
 
-            // Jika guru ini belum dinilai sama sekali oleh siapapun, lewatkan atau beri skor 0
-            if ($penilaians->isEmpty()) {
-                $results[] = ['nama' => $guru->nama_guru, 'skor' => 0];
-                continue;
-            }
+            foreach ($kriterias as $kriteria) {
+                $total_core = 0;
+                $total_secondary = 0;
+                $count_core = 0;
+                $count_secondary = 0;
 
-            foreach ($penilaians as $p) {
-                // 1. Hitung GAP menggunakan nilai rata-rata aktual: Rata-Rata Nilai - Nilai Ideal
-                $gap = $p->rata_nilai - $p->subKriteria->nilai_ideal;
+                foreach ($kriteria->subKriterias as $sub) {
+                    $penilaian = Penilaian::where('guru_id', $guru->id)
+                                          ->where('sub_kriteria_id', $sub->id)
+                                          ->where('semester', $semester)
+                                          ->first();
+                    
+                    if ($penilaian) {
+                        $nilai_aktual = $penilaian->nilai_aktual;
+                        $nilai_ideal = $sub->nilai_ideal;
+                        $gap = $nilai_aktual - $nilai_ideal;
+                        $bobot_gap = $this->getBobot($gap);
 
-                // 2. Pembobotan GAP
-                $bobot = $this->getBobot($gap);
-
-                // 3. Hitung Kore & Secondary Factor
-                if ($p->subKriteria->jenis_faktor == 'core') {
-                    $total_nilai += ($bobot * 0.6); // Bobot Core Factor 60%
-                } else {
-                    $total_nilai += ($bobot * 0.4); // Bobot Secondary Factor 40%
+                        if ($sub->jenis_faktor == 'core') {
+                            $total_core += $bobot_gap;
+                            $count_core++;
+                        } else {
+                            $total_secondary += $bobot_gap;
+                            $count_secondary++;
+                        }
+                    }
                 }
+
+                $nc = $count_core > 0 ? ($total_core / $count_core) : 0;
+                $ns = $count_secondary > 0 ? ($total_secondary / $count_secondary) : 0;
+                
+                $nilai_total_kriteria = (0.6 * $nc) + (0.4 * $ns);
+                $total_nilai_guru += ($nilai_total_kriteria * ($kriteria->bobot_persen / 100));
+
+                $rincian[$kriteria->kode_kriteria] = round($nilai_total_kriteria, 2);
             }
 
-            $results[] = [
-                'nama' => $guru->nama_guru,
-                'skor' => $total_nilai
+            $hasil_akhir[] = [
+                'guru' => $guru,
+                'rincian' => $rincian,
+                'total' => round($total_nilai_guru, 4)
             ];
         }
 
-        // Urutkan ranking dari nilai tertinggi ke terendah
-        usort($results, fn($a, $b) => $b['skor'] <=> $a['skor']);
+        // Urutkan berdasarkan total tertinggi
+        usort($hasil_akhir, function($a, $b) {
+            return $b['total'] <=> $a['total'];
+        });
 
-        return view('perhitungan.index', compact('results'));
+        // Cek status validasi
+        $validasi = \App\Models\ValidasiKepsek::where('semester', $semester)->first();
+
+        return view('perhitungan.index', compact('hasil_akhir', 'kriterias', 'validasi'));
+    }
+
+    public function validasi()
+    {
+        $semester = session('semester');
+        if (!$semester) return redirect()->route('login');
+
+        \App\Models\ValidasiKepsek::updateOrCreate(
+            ['semester' => $semester],
+            [
+                'is_validated' => true,
+                'validated_by' => \Illuminate\Support\Facades\Auth::id(),
+                'validated_at' => now(),
+            ]
+        );
+
+        return redirect()->route('perhitungan.index')->with('success', 'Hasil perankingan berhasil divalidasi!');
+    }
+
+    public function cetakRekap()
+    {
+        $semester = session('semester');
+        if (!$semester) return redirect()->route('login');
+        
+        $validasi = \App\Models\ValidasiKepsek::where('semester', $semester)->first();
+        if (!$validasi || !$validasi->is_validated) {
+            return redirect()->route('perhitungan.index')->with('error', 'Ranking belum divalidasi!');
+        }
+
+        $kandidatIds = \App\Models\Kandidat::where('semester', $semester)->pluck('guru_id');
+        $gurus = Guru::whereIn('id', $kandidatIds)->get();
+        $kriterias = Kriteria::with('subKriterias')->get();
+        $hasil_akhir = [];
+
+        foreach ($gurus as $guru) {
+            $total_nilai_guru = 0;
+            $rincian = [];
+
+            foreach ($kriterias as $kriteria) {
+                $total_core = 0;
+                $total_secondary = 0;
+                $count_core = 0;
+                $count_secondary = 0;
+
+                foreach ($kriteria->subKriterias as $sub) {
+                    $penilaian = Penilaian::where('guru_id', $guru->id)
+                                          ->where('sub_kriteria_id', $sub->id)
+                                          ->where('semester', $semester)
+                                          ->first();
+                    
+                    if ($penilaian) {
+                        $nilai_aktual = $penilaian->nilai_aktual;
+                        $nilai_ideal = $sub->nilai_ideal;
+                        $gap = $nilai_aktual - $nilai_ideal;
+                        $bobot_gap = $this->getBobot($gap);
+
+                        if ($sub->jenis_faktor == 'core') {
+                            $total_core += $bobot_gap;
+                            $count_core++;
+                        } else {
+                            $total_secondary += $bobot_gap;
+                            $count_secondary++;
+                        }
+                    }
+                }
+
+                $nc = $count_core > 0 ? ($total_core / $count_core) : 0;
+                $ns = $count_secondary > 0 ? ($total_secondary / $count_secondary) : 0;
+                
+                $nilai_total_kriteria = (0.6 * $nc) + (0.4 * $ns);
+                $total_nilai_guru += ($nilai_total_kriteria * ($kriteria->bobot_persen / 100));
+
+                $rincian[$kriteria->kode_kriteria] = round($nilai_total_kriteria, 2);
+            }
+
+            $hasil_akhir[] = [
+                'guru' => $guru,
+                'rincian' => $rincian,
+                'total' => round($total_nilai_guru, 4)
+            ];
+        }
+
+        usort($hasil_akhir, function($a, $b) {
+            return $b['total'] <=> $a['total'];
+        });
+
+        // Ambil penilai (supervisi) di semester aktif untuk TTD
+        $supervisis = \App\Models\User::where('role', 'guru_supervisi')
+            ->whereIn('id', function($q) use ($semester) {
+                $q->select('supervisi_id')->from('floating_supervisis')->where('semester', $semester);
+            })->get();
+
+        return view('perhitungan.cetak_rekap', compact('hasil_akhir', 'kriterias', 'validasi', 'supervisis'));
     }
 
     // Fungsi Menampilkan Detail Penilaian 1 Guru Spesifik
     public function detail($guru_id)
     {
+        $semester = session('semester');
         $guru = Guru::findOrFail($guru_id);
         $kriterias = Kriteria::with('subKriterias')->get();
-        
-        // Ambil semua penilaian untuk guru ini
-        $penilaians = Penilaian::where('guru_id', $guru_id)->with('user')->get();
+        $penilaians = Penilaian::where('guru_id', $guru_id)
+                               ->where('semester', $semester)
+                               ->get();
         
         // Cari tahu siapa saja Guru Supervisi yang sudah memberikan nilai untuk guru ini
         $supervisis = \App\Models\User::whereIn('id', $penilaians->pluck('user_id'))->get();

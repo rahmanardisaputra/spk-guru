@@ -28,9 +28,11 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-// Hanya Kepala Sekolah yang bisa hapus data
+// Hanya Kepala Sekolah yang bisa hapus data dan setting floating
 Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
-    Route::resource('guru', GuruController::class);
+    Route::get('/kandidat', [App\Http\Controllers\KandidatController::class, 'index'])->name('kandidat.index');
+    Route::post('/kandidat', [App\Http\Controllers\KandidatController::class, 'store'])->name('kandidat.store');
+    Route::delete('/kandidat/{id}', [App\Http\Controllers\KandidatController::class, 'destroy'])->name('kandidat.destroy');
 
     Route::get('/kriteria', [KriteriaController::class, 'index'])->name('kriteria.index');
      
@@ -53,6 +55,14 @@ Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
     Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset_password');
 });
 
+// Hanya TU yang bisa input data guru dan kelola master data, serta sertifikat
+Route::middleware(['auth', 'role:tu'])->group(function () {
+    Route::resource('guru', GuruController::class);
+    
+    // Manajemen Sertifikat Juara 1,2,3
+    Route::get('/penghargaan-tu', [GuruRewardController::class, 'halamanTu'])->name('reward.tu');
+});
+
 // Kepala Sekolah dan Guru Supervisi bisa input nilai
 Route::middleware(['auth', 'role:kepala_sekolah,guru_supervisi'])->group(function () {
     
@@ -62,17 +72,19 @@ Route::middleware(['auth', 'role:kepala_sekolah,guru_supervisi'])->group(functio
 
     Route::get('/perhitungan', [PerhitunganController::class, 'index'])->name('perhitungan.index');
     Route::get('/perhitungan/detail/{guru_id}', [PerhitunganController::class, 'detail'])->name('perhitungan.detail');
+    Route::post('/perhitungan/validasi', [PerhitunganController::class, 'validasi'])->name('perhitungan.validasi');
+    Route::get('/perhitungan/cetak-rekap', [PerhitunganController::class, 'cetakRekap'])->name('perhitungan.cetak_rekap');
 });
 
 // Rute khusus untuk Akun Guru melihat prestasinya & upload arsip
-Route::middleware(['role:guru'])->group(function () {
+Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::get('/penghargaan-guru', [GuruRewardController::class, 'halamanGuru'])->name('reward.guru');
     Route::post('/penghargaan-guru/upload/{guru_id}', [GuruRewardController::class, 'uploadSurat'])->name('reward.upload');
 });
-// Rute Cetak Surat (Bisa diakses Guru untuk cetak, dan Admin/KS untuk melihat)
-Route::get('/penghargaan/cetak-pengumuman/{guru_id}', [GuruRewardController::class, 'cetakPengumuman'])->name('reward.cetak_pengumuman');
-Route::get('/penghargaan/cetak-insentif/{guru_id}', [GuruRewardController::class, 'cetakInsentif'])->name('reward.cetak_insentif');
+// Rute Cetak Surat (Bisa diakses Guru untuk cetak, dan Admin/KS/TU untuk melihat)
+Route::get('/penghargaan/cetak-pengumuman/{guru_id}/{peringkat}', [GuruRewardController::class, 'cetakPengumuman'])->name('reward.cetak_pengumuman');
+Route::get('/penghargaan/cetak-insentif/{guru_id}/{peringkat}', [GuruRewardController::class, 'cetakInsentif'])->name('reward.cetak_insentif');
 // Rute Monitoring untuk Kepala Sekolah / Admin
-Route::middleware(['role:kepala_sekolah'])->group(function () {
+Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
     Route::get('/monitoring-penghargaan', [GuruRewardController::class, 'halamanAdmin'])->name('reward.admin');
 });

@@ -37,4 +37,24 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
+
+    public function showLoginForm()
+    {
+        $semesters = \App\Helpers\SemesterHelper::listSemesters();
+        return view('auth.login', compact('semesters'));
+    }
+
+    protected function validateLogin(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            $this->username() => 'required|string',
+            'password' => 'required|string',
+            'semester' => 'required|string',
+        ]);
+    }
+
+    protected function authenticated(\Illuminate\Http\Request $request, $user)
+    {
+        session(['semester' => $request->semester]);
+    }
 }

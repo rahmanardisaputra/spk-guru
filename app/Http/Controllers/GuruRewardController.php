@@ -12,16 +12,18 @@ use Illuminate\Support\Facades\Storage;
 
 class GuruRewardController extends Controller
 {
-    // Fungsi internal untuk mencari siapa Guru Terbaik (Peringkat 1) berdasarkan kalkulasi GAP saat ini
-    private function getGuruTerbaikId()
+    // Fungsi internal untuk mendapatkan peringkat guru beserta nilainya
+    private function getTopGurus()
     {
-        $gurus = Guru::all();
-        $topSkor = -1;
-        $idGuruTerbaik = null;
+        $semester = session('semester');
+        $kandidatIds = \App\Models\Kandidat::where('semester', $semester)->pluck('guru_id');
+        $gurus = Guru::whereIn('id', $kandidatIds)->get();
+        $hasil = [];
 
         foreach ($gurus as $guru) {
             $total_nilai = 0;
             $penilaians = Penilaian::where('guru_id', $guru->id)
+                ->where('semester', $semester)
                 ->select('sub_kriteria_id', \DB::raw('AVG(nilai_aktual) as rata_nilai'))
                 ->groupBy('sub_kriteria_id')
                 ->get();
@@ -42,49 +44,70 @@ class GuruRewardController extends Controller
                 }
             }
 
-            if ($total_nilai > $topSkor) {
-                $topSkor = $total_nilai;
-                $idGuruTerbaik = $guru->id;
-            }
+            $hasil[] = [
+                'guru' => $guru,
+                'skor' => $total_nilai
+            ];
         }
 
-        return $idGuruTerbaik;
+        // Urutkan dari skor tertinggi
+        usort($hasil, function($a, $b) {
+            return $b['skor'] <=> $a['skor'];
+        });
+
+        return $hasil;
+    }
+
+    private function getGuruTerbaikId()
+    {
+        $top = $this->getTopGurus();
+        return !empty($top) ? $top[0]['guru']->id : null;
     }
 
     // Halaman Penghargaan untuk Akun Guru yang Login
     public function halamanGuru()
     {
         $user = Auth::user();
+        $semester = session('semester');
         
-        // Cari data guru berdasarkan email/nip user yang login (asumsi nama atau email berelasi)
-        // Jika kamu belum membuat relasi user-guru di database, kita cari berdasarkan kesamaan nama
-        $guru = Guru::where('nama_guru', $user->name)->first();
+        $guru = Guru::where('nama_guru', $user->name)
+                    ->orWhere('email', $user->email)
+                    ->first();
 
         if (!$guru) {
             return view('reward.guru_index', ['isJuara' => false, 'pesan' => 'Data Guru Anda tidak ditemukan di sistem master.']);
         }
 
+        $validasi = \App\Models\ValidasiKepsek::where('semester', $semester)->first();
+        if (!$validasi || !$validasi->is_validated) {
+            return view('reward.guru_index', [
+                'isJuara' => false, 
+                'pesan' => 'Menunggu validasi hasil penilaian dari Kepala Sekolah untuk semester aktif.',
+                'guru' => $guru,
+                'arsip' => null
+            ]);
+        }
+
         $idJuara1 = $this->getGuruTerbaikId();
         $isJuara = ($guru->id == $idJuara1);
         
-        // Ambil status arsip upload jika ada
         $arsip = SuratPenghargaan::where('guru_id', $guru->id)->first();
 
         return view('reward.guru_index', compact('isJuara', 'guru', 'arsip'));
     }
 
-    // Cetak Surat Pengumuman Juara 1
-    public function cetakPengumuman($guru_id)
+    // Cetak Surat Pengumuman Juara 1, 2, 3
+    public function cetakPengumuman($guru_id, $peringkat)
     {
         $guru = Guru::findOrFail($guru_id);
-        return view('reward.cetak_pengumuman', compact('guru'));
+        return view('reward.cetak_pengumuman', compact('guru', 'peringkat'));
     }
 
     // Cetak Surat Pemberian Insentif
-    public function cetakInsentif($guru_id)
+    public function cetakInsentif($guru_id, $peringkat)
     {
         $guru = Guru::findOrFail($guru_id);
-        return view('reward.cetak_insentif', compact('guru'));
+        return view('reward.cetak_insentif', compact('guru', 'peringkat'));
     }
 
     // Proses Upload Dokumen yang Sudah Ditandatangani oleh Guru Terbaik
@@ -119,5 +142,20 @@ class GuruRewardController extends Controller
         $arsip = $guruTerbaik ? SuratPenghargaan::where('guru_id', $guruTerbaik->id)->first() : null;
 
         return view('reward.admin_index', compact('guruTerbaik', 'arsip'));
+    }
+
+    // Halaman Manajemen Sertifikat untuk TU
+    public function halamanTu()
+    {
+        $semester = session('semester');
+        $validasi = \App\Models\ValidasiKepsek::where('semester', $semester)->first();
+        
+        $top3 = [];
+        if ($validasi && $validasi->is_validated) {
+            $topGurusData = $this->getTopGurus();
+            $top3 = array_slice($topGurusData, 0, 3);
+        }
+        
+        return view('reward.tu_index', compact('top3', 'validasi'));
     }
 }

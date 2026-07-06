@@ -31,7 +31,12 @@
     <div class="box-juara">
         NAMA GURU: {{ $guru->nama_guru }}<br>
         NIP: {{ $guru->nip ?? '-' }}<br>
-        PREDIKAT: GURU TERBAIK PERINGKAT I
+        PREDIKAT: GURU TERBAIK PERINGKAT 
+        @if($peringkat == 1) I 
+        @elseif($peringkat == 2) II
+        @elseif($peringkat == 3) III
+        @else {{ $peringkat }}
+        @endif
     </div>
 
     <p class="paragraf">Dinyatakan sebagai Guru Terbaik karena pemenuhan instrumen kompetensi pedagogik, profesional, sosial, kepribadian, serta keandalan tingkat kehadiran dan capaian prestasi yang paling mendekati profil ideal instansi sekolah.</p>

@@ -3,8 +3,9 @@
 @section('content')
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user-shield text-success me-2"></i>Dashboard Guru Supervisi</h4>
-            <small class="text-muted">Halo, <strong>{{ Auth::user()->name }}</strong>. Panel ini khusus untuk mengevaluasi kinerja pendidik.</small>
+            <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-user-shield text-success me-2"></i>Dashboard Guru Supervisi</h4>
+            <div class="badge bg-success mb-2">Periode Aktif: {{ $periode_penilaian }}</div>
+            <small class="text-muted d-block">Halo, <strong>{{ Auth::user()->name }}</strong>. Panel ini khusus untuk mengevaluasi kinerja pendidik.</small>
         </div>
     </div>
 

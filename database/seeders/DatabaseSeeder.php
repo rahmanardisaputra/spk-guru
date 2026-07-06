@@ -96,5 +96,10 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        // 4. Seeder untuk User TU
+        $this->call([
+            TuSeeder::class
+        ]);
     }
 }
