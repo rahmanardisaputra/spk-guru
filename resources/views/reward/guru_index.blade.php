@@ -16,13 +16,13 @@
             </div>
         </div>
     @else
-        <div class="card border-0 shadow-sm bg-gradient text-white p-4 mb-4" style="background: linear-gradient(135deg, #2c3e50, #16a085);">
+        <div class="card border-0 shadow-sm p-4 mb-4" style="background-color: #d1e7dd; border-left: 5px solid #198754 !important;">
             <div class="row align-items-center">
                 <div class="col-md-2 text-center mb-3 mb-md-0">
-                    <i class="fa-solid fa-medal text-warning animate-bounce" style="font-size: 5rem;"></i>
+                    <i class="fa-solid fa-medal text-success animate-bounce" style="font-size: 5rem;"></i>
                 </div>
-                <div class="col-md-10">
-                    <h3 class="fw-bold text-warning">Selamat! Anda Terpilih Sebagai Guru Terbaik</h3>
+                <div class="col-md-10 text-dark">
+                    <h3 class="fw-bold text-success">Selamat! Anda Terpilih Sebagai Guru Terbaik</h3>
                     <p class="mb-0">Berdasarkan hasil kalkulasi objektif sistem pendukung keputusan metode <strong>GAP Analysis</strong>, Anda berhasil meraih predikat <strong>Peringkat 1 Kinerja Guru Terbaik</strong> periode tahun ini. Terima kasih atas kontribusi luar biasa Anda bagi sekolah!</p>
                 </div>
             </div>

@@ -12,6 +12,7 @@ use App\Http\Controllers\FloatingController;
 use App\Http\Controllers\GuruRewardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingController;
 
 Auth::routes();
 
@@ -53,6 +54,10 @@ Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset_password');
+
+    // Pengaturan Sistem
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
 
 // Hanya TU yang bisa input data guru dan kelola master data, serta sertifikat
@@ -84,6 +89,7 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
 // Rute Cetak Surat (Bisa diakses Guru untuk cetak, dan Admin/KS/TU untuk melihat)
 Route::get('/penghargaan/cetak-pengumuman/{guru_id}/{peringkat}', [GuruRewardController::class, 'cetakPengumuman'])->name('reward.cetak_pengumuman');
 Route::get('/penghargaan/cetak-insentif/{guru_id}/{peringkat}', [GuruRewardController::class, 'cetakInsentif'])->name('reward.cetak_insentif');
+Route::get('/penghargaan/cetak-sertifikat/{guru_id}/{peringkat}', [GuruRewardController::class, 'cetakSertifikat'])->name('reward.cetak_sertifikat');
 // Rute Monitoring untuk Kepala Sekolah / Admin
 Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
     Route::get('/monitoring-penghargaan', [GuruRewardController::class, 'halamanAdmin'])->name('reward.admin');

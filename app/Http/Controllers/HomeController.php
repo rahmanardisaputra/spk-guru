@@ -86,7 +86,6 @@ class HomeController extends Controller
         } else {
             // Dashboard Guru
             $guru = Guru::where('nama_guru', $userLogedIn->name)
-                        ->orWhere('email', $userLogedIn->email)
                         ->first();
             
             $rewardController = new GuruRewardController();

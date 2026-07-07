@@ -11,12 +11,12 @@
 
     @if($guru)
         @if($isJuara1)
-            <div class="card border-0 shadow-sm bg-gradient text-white p-4 mb-4" style="background: linear-gradient(135deg, #f39c12, #d35400);">
+            <div class="card border-0 shadow-sm p-4 mb-4" style="background-color: #fff3cd; border-left: 5px solid #ffc107 !important;">
                 <div class="row align-items-center">
                     <div class="col-md-1 text-center mb-2 mb-md-0">
-                        <i class="fa-solid fa-trophy text-white" style="font-size: 3.5rem;"></i>
+                        <i class="fa-solid fa-trophy text-warning" style="font-size: 3.5rem;"></i>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-8 text-dark">
                         <h4 class="fw-bold mb-1">Selamat! Anda Terpilih Sebagai Guru Terbaik Periode Ini</h4>
                         <p class="mb-0 small opacity-90">Berdasarkan kalkulasi matriks profile matching GAP Analysis dari tim supervisi, Anda berhasil menduduki peringkat pertama. Silakan unduh berkas piagam & insentif Anda melalui menu penghargaan.</p>
                     </div>

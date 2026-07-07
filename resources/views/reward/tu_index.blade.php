@@ -44,11 +44,14 @@
                             <td class="fw-bold">{{ $data['guru']->nama_guru }}</td>
                             <td>{{ number_format($data['skor'], 2) }}</td>
                             <td class="px-4 text-end">
-                                <a href="{{ route('reward.cetak_pengumuman', ['guru_id' => $data['guru']->id, 'peringkat' => $index + 1]) }}" target="_blank" class="btn btn-sm btn-outline-primary fw-bold shadow-sm me-2">
+                                <a href="{{ route('reward.cetak_pengumuman', ['guru_id' => $data['guru']->id, 'peringkat' => $index + 1]) }}" target="_blank" class="btn btn-sm btn-outline-primary fw-bold shadow-sm me-1 mb-1">
                                     <i class="fa-solid fa-file-pdf"></i> Pengumuman
                                 </a>
-                                <a href="{{ route('reward.cetak_insentif', ['guru_id' => $data['guru']->id, 'peringkat' => $index + 1]) }}" target="_blank" class="btn btn-sm btn-outline-success fw-bold shadow-sm">
+                                <a href="{{ route('reward.cetak_insentif', ['guru_id' => $data['guru']->id, 'peringkat' => $index + 1]) }}" target="_blank" class="btn btn-sm btn-outline-success fw-bold shadow-sm me-1 mb-1">
                                     <i class="fa-solid fa-receipt"></i> Insentif
+                                </a>
+                                <a href="{{ route('reward.cetak_sertifikat', ['guru_id' => $data['guru']->id, 'peringkat' => $index + 1]) }}" target="_blank" class="btn btn-sm btn-outline-warning text-dark fw-bold shadow-sm mb-1">
+                                    <i class="fa-solid fa-certificate"></i> Sertifikat
                                 </a>
                             </td>
                         </tr>

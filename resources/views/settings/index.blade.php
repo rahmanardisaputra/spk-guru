@@ -28,6 +28,25 @@
                         <div class="form-text">Periode ini akan ditampilkan pada Dashboard Guru. Format yang disarankan: Semester - Tahun Ajaran.</div>
                     </div>
 
+                    <div class="mb-4">
+                        <label for="nama_kepsek" class="form-label fw-semibold">Nama Kepala Sekolah</label>
+                        <input type="text" class="form-control" id="nama_kepsek" name="nama_kepsek" 
+                               value="{{ $nama_kepsek ?? '' }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="nip_kepsek" class="form-label fw-semibold">NIP Kepala Sekolah</label>
+                        <input type="text" class="form-control" id="nip_kepsek" name="nip_kepsek" 
+                               value="{{ $nip_kepsek ?? '' }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="no_surat" class="form-label fw-semibold">Format Nomor Surat (Prefix)</label>
+                        <input type="text" class="form-control" id="no_surat" name="no_surat" 
+                               value="{{ $no_surat ?? '' }}" placeholder="Contoh: 2024/SPK-GURU/" required>
+                        <div class="form-text">Format ini akan digunakan untuk nomor surat penghargaan. Peringkat guru akan ditambahkan di bagian akhir (contoh: .../001).</div>
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i> Simpan Pengaturan</button>
                     </div>

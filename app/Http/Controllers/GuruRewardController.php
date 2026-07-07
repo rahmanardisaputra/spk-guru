@@ -71,7 +71,6 @@ class GuruRewardController extends Controller
         $semester = session('semester');
         
         $guru = Guru::where('nama_guru', $user->name)
-                    ->orWhere('email', $user->email)
                     ->first();
 
         if (!$guru) {
@@ -108,6 +107,13 @@ class GuruRewardController extends Controller
     {
         $guru = Guru::findOrFail($guru_id);
         return view('reward.cetak_insentif', compact('guru', 'peringkat'));
+    }
+
+    // Cetak Sertifikat Penghargaan
+    public function cetakSertifikat($guru_id, $peringkat)
+    {
+        $guru = Guru::findOrFail($guru_id);
+        return view('reward.cetak_sertifikat', compact('guru', 'peringkat'));
     }
 
     // Proses Upload Dokumen yang Sudah Ditandatangani oleh Guru Terbaik

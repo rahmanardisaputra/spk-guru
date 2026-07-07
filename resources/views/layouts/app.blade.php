@@ -277,6 +277,10 @@
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                         <i class="fa-solid fa-users-gear"></i> Manajemen Akun
                     </a>
+                    <div class="menu-label">Pengaturan</div>
+                    <a class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
+                        <i class="fa-solid fa-gear"></i> Pengaturan Sistem
+                    </a>
                 @endif
 
                 @if(Auth::user()->role == 'guru_supervisi' || Auth::user()->role == 'kepala_sekolah')
