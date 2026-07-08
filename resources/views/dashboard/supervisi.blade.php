@@ -11,7 +11,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 bg-gradient p-3 text-white" style="background: linear-gradient(135deg, #1abc9c, #16a085);">
+            <div class="card border-0 shadow-sm rounded-3 bg-success bg-gradient p-3 text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-white-50 small mb-1">Target Guru yang Harus Anda Nilai</h6>
@@ -22,7 +22,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 bg-gradient p-3 text-white" style="background: linear-gradient(135deg, #34495e, #2c3e50);">
+            <div class="card border-0 shadow-sm rounded-3 bg-secondary bg-gradient p-3 text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-white-50 small mb-1">Guru yang Selesai Anda Evaluasi</h6>

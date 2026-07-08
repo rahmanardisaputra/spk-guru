@@ -12,6 +12,10 @@
                     </form>
                 @else
                     <span class="badge bg-success py-2 px-3 me-2"><i class="fa-solid fa-check-circle me-1"></i> Telah Divalidasi</span>
+                    <form id="form-unvalidasi" action="{{ route('perhitungan.unvalidasi') }}" method="POST" class="d-inline me-2">
+                        @csrf
+                        <button type="button" onclick="confirmUnvalidasi()" class="btn btn-danger fw-bold shadow-sm"><i class="fa-solid fa-times-circle me-1"></i> Batalkan Validasi</button>
+                    </form>
                     <a href="{{ route('perhitungan.cetak_rekap') }}" target="_blank" class="btn btn-success fw-bold shadow-sm"><i class="fa-solid fa-print me-1"></i> Cetak Rekapitulasi</a>
                 @endif
             @else
@@ -87,6 +91,23 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('form-validasi').submit();
+            }
+        });
+    }
+
+    function confirmUnvalidasi() {
+        Swal.fire({
+            title: 'Batalkan Validasi?',
+            text: "Apakah Anda yakin ingin membatalkan validasi hasil perankingan? Hasil tidak akan dapat dilihat oleh Guru dan Tata Usaha sampai divalidasi kembali.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Kembali'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('form-unvalidasi').submit();
             }
         });
     }

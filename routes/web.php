@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:kepala_sekolah,guru_supervisi'])->group(functio
     Route::get('/perhitungan', [PerhitunganController::class, 'index'])->name('perhitungan.index');
     Route::get('/perhitungan/detail/{guru_id}', [PerhitunganController::class, 'detail'])->name('perhitungan.detail');
     Route::post('/perhitungan/validasi', [PerhitunganController::class, 'validasi'])->name('perhitungan.validasi');
+    Route::post('/perhitungan/unvalidasi', [PerhitunganController::class, 'unvalidasi'])->name('perhitungan.unvalidasi');
     Route::get('/perhitungan/cetak-rekap', [PerhitunganController::class, 'cetakRekap'])->name('perhitungan.cetak_rekap');
 });
 

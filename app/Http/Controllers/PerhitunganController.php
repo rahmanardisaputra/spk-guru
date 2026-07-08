@@ -97,6 +97,20 @@ class PerhitunganController extends Controller
         return redirect()->route('perhitungan.index')->with('success', 'Hasil perankingan berhasil divalidasi!');
     }
 
+    public function unvalidasi()
+    {
+        $semester = session('semester');
+        if (!$semester) return redirect()->route('login');
+
+        \App\Models\ValidasiKepsek::where('semester', $semester)->update([
+            'is_validated' => false,
+            'validated_by' => null,
+            'validated_at' => null,
+        ]);
+
+        return redirect()->route('perhitungan.index')->with('success', 'Validasi hasil perankingan berhasil dibatalkan!');
+    }
+
     public function cetakRekap()
     {
         $semester = session('semester');
