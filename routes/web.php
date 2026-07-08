@@ -95,3 +95,5 @@ Route::get('/penghargaan/cetak-sertifikat/{guru_id}/{peringkat}', [GuruRewardCon
 Route::middleware(['auth', 'role:kepala_sekolah'])->group(function () {
     Route::get('/monitoring-penghargaan', [GuruRewardController::class, 'halamanAdmin'])->name('reward.admin');
 });
+
+//route tambahan
